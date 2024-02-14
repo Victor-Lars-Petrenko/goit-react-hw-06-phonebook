@@ -1,3 +1,6 @@
+import { useDispatch, useSelector } from 'react-redux';
+import { nanoid } from '@reduxjs/toolkit';
+
 import {
   Form,
   Label,
@@ -6,63 +9,45 @@ import {
   InputWrap,
 } from './ContactForm.styled';
 
-import { useState } from 'react';
-import { nanoid } from 'nanoid';
+import { getContacts } from '../../redux/selectors';
+import { addContact } from '../../redux/contactsSlice';
 
 const formNameId = nanoid();
 const fornNumberId = nanoid();
 
-export const ContactForm = ({ onSubmit }) => {
-  const [name, setName] = useState('');
-  const [number, setNumber] = useState('');
+export const ContactForm = () => {
+  const dispatch = useDispatch();
+  const contacts = useSelector(getContacts);
 
-  const handleChange = e => {
-    const { name, value } = e.target;
-    switch (name) {
-      case 'name':
-        setName(value);
-        break;
-      case 'number':
-        setNumber(value);
-        break;
-      default:
-        console.log('hhhh');
+  const handleSubmit = e => {
+    e.preventDefault();
+
+    const form = e.currentTarget;
+    const name = form.name.value;
+    const number = form.number.value;
+
+    const isExist = contacts
+      .map(({ name }) => name.toLowerCase())
+      .includes(name.toLowerCase());
+
+    if (isExist) {
+      alert(`${name} is already in contacts.`);
+      return;
     }
-  };
 
-  const reset = () => {
-    setName('');
-    setNumber('');
+    dispatch(addContact(name, number));
+    form.reset();
   };
 
   return (
-    <Form
-      onSubmit={e => {
-        onSubmit(e, name, number);
-        reset();
-      }}
-    >
+    <Form onSubmit={handleSubmit}>
       <InputWrap>
         <Label htmlFor={formNameId}>Name</Label>
-        <FormInput
-          onChange={handleChange}
-          id={formNameId}
-          type="text"
-          name="name"
-          value={name}
-          required
-        />
+        <FormInput id={formNameId} type="text" name="name" required />
       </InputWrap>
       <InputWrap>
         <Label htmlFor={fornNumberId}>Number</Label>
-        <FormInput
-          onChange={handleChange}
-          id={fornNumberId}
-          type="tel"
-          name="number"
-          value={number}
-          required
-        />
+        <FormInput id={fornNumberId} type="tel" name="number" required />
       </InputWrap>
       <Button type="submit">Add contact</Button>
     </Form>
